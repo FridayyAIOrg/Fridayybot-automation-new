@@ -1,3 +1,4 @@
+import config
 from sqlalchemy import Column, Integer, String, Text, DateTime, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -17,7 +18,7 @@ class Message(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 # DB setup
-DATABASE_URL = 'sqlite:///message_history.db'
+DATABASE_URL = config.DATABASE_URL
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

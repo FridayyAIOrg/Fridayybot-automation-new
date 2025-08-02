@@ -57,7 +57,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             formatted["content"] = None
 
         messages.append(formatted)
-        print(messages)
 
     # Add current user input
     messages.append({"role": "user", "content": user_input})
@@ -70,7 +69,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         tools=tools,
     )
     assistant_msg = response.choices[0].message
-    print(assistant_msg)
 
     # If the model triggers a tool call
     if hasattr(assistant_msg, "tool_calls") and assistant_msg.tool_calls:
@@ -121,4 +119,5 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot is running...")
+    print(f"Using model: {MODEL}")
     app.run_polling()
