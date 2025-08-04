@@ -149,7 +149,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await process_llm(update, context, user_content)
 
 if __name__ == '__main__':
-    init_db()  # Initialize the database
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))

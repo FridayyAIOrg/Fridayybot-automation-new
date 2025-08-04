@@ -29,10 +29,6 @@ DATABASE_URL = config.DATABASE_URL
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
 # DB operations
 async def save_message_orm(conversation_id, role, content, name=None, tool_call_id=None):
     async with AsyncSessionLocal() as session:
