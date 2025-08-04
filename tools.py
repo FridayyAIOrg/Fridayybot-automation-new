@@ -124,7 +124,7 @@ async def capture_store_details(store_id, store_name, address, whatsapp_number, 
         "instagram_id": instagram_id
     }
     async with aiohttp.ClientSession() as session:
-        async with session.put(f"{base_url}/apiv2/storefront/info/{store_id}", json=payload, headers=headers) as response:
+        async with session.put(f"{base_url}/apiv2/storefront/info/{store_id}/", json=payload, headers=headers) as response:
             return await response.json()
 
 async def upload_store_images(store_id, image_urls, image_type, auth_token):
