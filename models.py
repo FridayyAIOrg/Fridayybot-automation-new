@@ -1,8 +1,15 @@
 import config
 from sqlalchemy import Column, Integer, String, Text, DateTime, create_engine, ForeignKey
+from sqlalchemy.future import select
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+import asyncio
+import logging
+
+# Suppress SQLAlchemy engine logs
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 Base = declarative_base()
 
@@ -19,23 +26,31 @@ class Message(Base):
 
 # DB setup
 DATABASE_URL = config.DATABASE_URL
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
-Base.metadata.create_all(bind=engine)
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # DB operations
+async def save_message_orm(conversation_id, role, content, name=None, tool_call_id=None):
+    async with AsyncSessionLocal() as session:
+        async with session.begin():
+            message = Message(
+                conversation_id=conversation_id,
+                role=role,
+                content=content,
+                name=name,
+                tool_call_id=tool_call_id
+            )
+            session.add(message)
 
-def save_message_orm(conversation_id, role, content, name=None, tool_call_id=None):
-    db = SessionLocal()
-    message = Message(conversation_id=conversation_id, role=role, content=content, name=name, tool_call_id=tool_call_id)
-    db.add(message)
-    db.commit()
-    db.close()
-
-
-def get_conversation_messages_orm(conversation_id):
-    db = SessionLocal()
-    messages = db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.id).all()
-    db.close()
-    return messages
+async def get_conversation_messages_orm(conversation_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Message)
+            .filter(Message.conversation_id == conversation_id)
+            .order_by(Message.id)
+        )
+        return result.scalars().all()

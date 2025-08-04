@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import requests
@@ -9,10 +10,7 @@ from openai import OpenAI
 from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
-from models import save_message_orm, get_conversation_messages_orm
-
-# Configure logging
-logging.basicConfig(level=logging.WARNING)
+from models import save_message_orm, get_conversation_messages_orm, init_db
 
 # OpenAI via OpenRouter
 openai_client = OpenAI(
@@ -26,15 +24,18 @@ with open("prompt.md", "r", encoding="utf-8") as f:
 
 # Utility: get image URL from Telegram file_id
 async def get_telegram_file_url(context: ContextTypes.DEFAULT_TYPE, file_id: str) -> str:
-    file = await context.bot.get_file(file_id)
-    return f"{file.file_path}"
+    try:
+        file = await context.bot.get_file(file_id)
+        return f"{file.file_path}"
+    except Exception as e:
+        return f"Error fetching file: {e}"
 
 # Main processing logic for LLM + tool
 async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_content):
     chat_id = str(update.effective_chat.id)
 
     # Load conversation history
-    conversation_history = get_conversation_messages_orm(chat_id)
+    conversation_history = await get_conversation_messages_orm(chat_id)
 
     # Format messages
     messages = [{"role": "system", "content": system_prompt}]
@@ -64,7 +65,7 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
 
     # Add new user content
     messages.append({"role": "user", "content": user_content})
-    save_message_orm(chat_id, "user", user_content)
+    await save_message_orm(chat_id, "user", user_content)
 
     # First LLM call
     response = openai_client.chat.completions.create(
@@ -81,7 +82,7 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
         tool_name = tool_call.function.name
         tool_args = json.loads(tool_call.function.arguments)
 
-        save_message_orm(
+        await save_message_orm(
             chat_id,
             role="assistant",
             content=tool_call.function.arguments,
@@ -109,7 +110,7 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
             "name": tool_name,
             "content": tool_content,
         })
-        save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
+        await save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
 
         # Final LLM call with tool result
         final_response = openai_client.chat.completions.create(
@@ -118,12 +119,12 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
             tools=tools,
         )
         final_text = final_response.choices[0].message.content
-        save_message_orm(chat_id, "assistant", final_text)
+        await save_message_orm(chat_id, "assistant", final_text)
         await update.message.reply_text(final_text)
 
     else:
         reply = assistant_msg.content or "I didn't understand that."
-        save_message_orm(chat_id, "assistant", reply)
+        await save_message_orm(chat_id, "assistant", reply)
         await update.message.reply_text(reply)
 
 # Text message handler
@@ -137,7 +138,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message: Message = update.message
     if not message or not message.photo:
-        await message.reply_text("Koi image nahi mila.")
+        await message.reply_text("No Image received.")
         return
 
     # Get only the highest resolution photo per message
@@ -147,8 +148,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_content = f"User uploaded the following image: {image_url}"
     await process_llm(update, context, user_content)
 
-# Entry point
 if __name__ == '__main__':
+    init_db()  # Initialize the database
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
