@@ -10,7 +10,7 @@ from openai import OpenAI
 from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
-from models import save_message_orm, get_conversation_messages_orm, init_db
+from models import save_message_orm, get_conversation_messages_orm
 
 # OpenAI via OpenRouter
 openai_client = OpenAI(
