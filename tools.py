@@ -151,22 +151,23 @@ async def upload_store_images(store_id, image_urls, image_type, auth_token):
         async with session.put(f"{base_url}/apiv2/about_images/", data=data, headers=headers) as response:
             return await response.json()
 
-async def capture_store_story(store_id, stories: dict, auth_token):
+async def capture_store_story(store_id, store_name, stories: dict, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "store_id": store_id,
+        "store_name": store_name,
         "details": stories
     }
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"{base_url}/apiv2/generate_store_content/", json=payload, headers=headers) as response:
+        async with session.post(f"{base_url}/bot/generate_store_profile/", json=payload, headers=headers) as response:
             return await response.json()
 
 async def get_storefront_link(store_id, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{base_url}/apiv2/storefront/get_info/{store_id}", headers=headers) as response:
+        async with session.get(f"{base_url}/apiv2/storefront/get_info/{store_id}/", headers=headers) as response:
             data = await response.json()
-            storefront_link = f'development.fridayy.ai/{data.get("store_link")}'
+            storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
             return {"storefront_link": storefront_link}
 
 # -------------------------

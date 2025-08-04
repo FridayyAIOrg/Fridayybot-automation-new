@@ -171,6 +171,7 @@ tools = [
             "type": "object",
             "properties": {
                 "store_id": { "type": "string" },
+                "store_name": { "type": "string" },
                 "stories": {
                 "type": "object",
                 "description": "A mapping of story types to story texts.",

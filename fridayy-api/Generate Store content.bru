@@ -5,17 +5,18 @@ meta {
 }
 
 post {
-  url: https://dev.fridayy.ai/apiv2/generate_store_content/
+  url: https://dev.fridayy.ai/bot/generate_store_profile/
   body: json
   auth: bearer
 }
 
 auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjYwMzI5LCJpYXQiOjE3NTQyNTMxMjksImp0aSI6Ijk1YjJlMTUwOWFkYTQ4NGQ4NzE3YjUzZjRhNTljODI3IiwidXNlcl9pZCI6MTYzfQ.RS_k4lruGUupwBbCmBdYyydC6yPVWouEa0L1m6RP2bI
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MzA4MjIzLCJpYXQiOjE3NTQzMDEwMjMsImp0aSI6ImVhMmQwN2EwMjczOTQyMTdiYmNmYjg0ZWRjYmY4MjQ0IiwidXNlcl9pZCI6MTYzfQ.CvE3NNdAymW4Pd05RlcS091z9kzasquqtvKY_lp_UH0
 }
 
 body:json {
   {  
+    "store_name": "test",
     "store_id": "372",
     "details": {
       "process_special":"Saree shop in kanchivoram",
