@@ -1,0 +1,32 @@
+meta {
+  name: Storefront Link
+  type: http
+  seq: 12
+}
+
+get {
+  url: https://dev.fridayy.ai/apiv2/storefront/get_info/372/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0Mjk2ODQxLCJpYXQiOjE3NTQyODk2NDEsImp0aSI6IjZhODViNjA2ZDY5NTRlZWQ4Y2NhYWY2MjdlMTVlNzljIiwidXNlcl9pZCI6MTYzfQ.ih2FpByy7btx9Z6LPUmeEGUFl8K_BU2Ulbg82VOg1og
+}
+
+body:json {
+  {  
+    "store_id": "372",
+    "details": {
+      "process_special":"Saree shop in kanchivoram",
+      "how_long": "30 days",
+      "difficult_are_to_master": "yes"
+    }
+  }
+}
+
+body:multipart-form {
+  store_id: 372
+  type: what_we_do
+  file: @file(C:\Users\varad\Downloads\file_0.jpg)
+}

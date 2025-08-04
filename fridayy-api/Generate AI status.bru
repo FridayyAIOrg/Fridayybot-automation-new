@@ -1,0 +1,20 @@
+meta {
+  name: Generate AI status
+  type: http
+  seq: 7
+}
+
+get {
+  url: https://dev.fridayy.ai/ocr/check_status/82/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjQzMDgyLCJpYXQiOjE3NTQyMzU4ODIsImp0aSI6ImQzOGY2YmUzZmMyNjRjZDA4YzZhMzIwYThmM2U4ZjBkIiwidXNlcl9pZCI6MTYzfQ.Ob9a9b5lFJLyBSULhDxKH1JOTV2JKNb51kCV-OxFfxc
+}
+
+body:multipart-form {
+  store_id: 419
+  images: @file(C:\Users\varad\Downloads\k8122965.jpg)
+}

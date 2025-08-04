@@ -1,0 +1,15 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://dev.fridayy.ai/ocr/auth/vendor/
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {"phone_no": "9702164747"}
+}

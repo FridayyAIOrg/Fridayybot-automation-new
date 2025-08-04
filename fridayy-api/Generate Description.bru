@@ -1,0 +1,30 @@
+meta {
+  name: Generate Description
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://dev.fridayy.ai/bot/generate_description/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjEzMTIxLCJpYXQiOjE3NTQyMDU5MjEsImp0aSI6IjE4NDU4M2E3OWQxMzRlYmZiN2YxODZjMzkzZWFhNDI5IiwidXNlcl9pZCI6MTYzfQ.3Eg_lCaB02ByqX8tD0Xi5CruMhoucqOyrT6lfvQodQU
+}
+
+body:json {
+  { 
+    "product_id": "20164", 
+    "MRP": "120", 
+    "product_name": "Saree", 
+    "application": "Designerwear", 
+    "material": "silk"
+  }
+}
+
+body:multipart-form {
+  store_id: 419
+  images: @file(C:\Users\varad\Downloads\k8122965.jpg)
+}

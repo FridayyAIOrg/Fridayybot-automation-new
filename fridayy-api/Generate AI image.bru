@@ -1,0 +1,29 @@
+meta {
+  name: Generate AI image
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://dev.fridayy.ai/ocr/generate_ai_images/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjEzMTIxLCJpYXQiOjE3NTQyMDU5MjEsImp0aSI6IjE4NDU4M2E3OWQxMzRlYmZiN2YxODZjMzkzZWFhNDI5IiwidXNlcl9pZCI6MTYzfQ.3Eg_lCaB02ByqX8tD0Xi5CruMhoucqOyrT6lfvQodQU
+}
+
+body:json {
+  { 
+    "product_id": "20164",
+    "store_id": "372",
+    "image_url": "https://image-fridayyai.s3.amazonaws.com/user_images/419/81916218d9d8446b84b2422da13f7377.webp",
+    "generation_type": "both"
+  }
+}
+
+body:multipart-form {
+  store_id: 419
+  images: @file(C:\Users\varad\Downloads\k8122965.jpg)
+}

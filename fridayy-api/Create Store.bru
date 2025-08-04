@@ -1,0 +1,19 @@
+meta {
+  name: Create Store
+  type: http
+  seq: 3
+}
+
+post {
+  url: https://dev.fridayy.ai/ocr/create_store/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0MjEzMTIxLCJpYXQiOjE3NTQyMDU5MjEsImp0aSI6IjE4NDU4M2E3OWQxMzRlYmZiN2YxODZjMzkzZWFhNDI5IiwidXNlcl9pZCI6MTYzfQ.3Eg_lCaB02ByqX8tD0Xi5CruMhoucqOyrT6lfvQodQU
+}
+
+body:json {
+  {"categories": ["Vehicles & Parts"]}
+}
