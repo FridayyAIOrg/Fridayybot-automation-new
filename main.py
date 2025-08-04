@@ -12,7 +12,10 @@ from tools import TOOL_MAPPING
 from tools_def import tools
 from models import save_message_orm, get_conversation_messages_orm
 import threading
-from health import start_health_server
+from health import create_health_app
+from aiohttp import web
+import nest_asyncio
+nest_asyncio.apply()  # Patch the event loop to allow reentry
 
 # OpenAI via OpenRouter
 openai_client = OpenAI(
@@ -150,13 +153,27 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_content = f"User uploaded the following image: {image_url}"
     await process_llm(update, context, user_content)
 
-if __name__ == '__main__':
+async def run_health_server():
+    app = create_health_app()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, port=8080)
+    await site.start()
+    print("✅ Health server running on port 8080")
+
+async def setup_and_start():
+    await run_health_server()
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    print("Bot is running...")
-    print(f"Using model: {MODEL}")
-    threading.Thread(target=start_health_server, daemon=True).start()
-    print("Health server started on port 8080")
-    app.run_polling()
-    
+
+    print("🤖 Bot is running...")
+    print(f"🧠 Using model: {MODEL}")
+
+    # Start polling
+    await app.run_polling()
+
+if __name__ == "__main__":
+    # No asyncio.run here!
+    asyncio.get_event_loop().run_until_complete(setup_and_start())

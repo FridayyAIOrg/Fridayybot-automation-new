@@ -1,10 +1,9 @@
-# health.py
 from aiohttp import web
 
 async def health_check(request):
     return web.Response(text="OK")
 
-def start_health_server():
+def create_health_app():
     app = web.Application()
-    app.router.add_get("/", health_check)
-    web.run_app(app, port=8080)
+    app.router.add_get("", health_check)
+    return app
