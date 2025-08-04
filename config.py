@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 import logging
 
 # Configure logging
-logger = logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
