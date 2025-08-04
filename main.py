@@ -11,6 +11,8 @@ from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
 from models import save_message_orm, get_conversation_messages_orm
+import threading
+from health import start_health_server
 
 # OpenAI via OpenRouter
 openai_client = OpenAI(
@@ -154,4 +156,7 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     print("Bot is running...")
     print(f"Using model: {MODEL}")
+    threading.Thread(target=start_health_server, daemon=True).start()
+    print("Health server started on port 8080")
     app.run_polling()
+    
