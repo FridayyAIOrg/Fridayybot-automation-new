@@ -93,27 +93,29 @@ async def poll_image_generation(update, job_id, headers):
     tries = 40
     async with aiohttp.ClientSession() as session:
         while tries > 0:
-            print(f"Polling for job {job_id}, tries left: {tries}")
             tries -= 1
-            async with session.get(f"{base_url}/check_status/{job_id}/", headers=headers) as response:
+            async with session.get(f"{base_url}/ocr/check_status/{job_id}/", headers=headers) as response:
+                print(f"Polling for job {job_id}, tries left: {tries}")
                 if response.status == 200:
                     data = await response.json()
                     status = data.get("status")
+                    result_image_urls = data.get("result_image_url", [])
                     error = data.get("error_message")
+                    if status == "completed" and isinstance(result_image_urls, list):
+                        # Send all available images
+                        for image in result_image_urls:
+                            image_type = image.get("type")
+                            image_url = image.get("value")
+                            if image_url and image_type:
+                                caption = f"✅ {image_type.capitalize()} image generated!"
+                                await update.message.reply_photo(photo=image_url, caption=caption)
+                        break
 
-            result_image_url = "https://placehold.co/600x400.png"
+                    elif error:
+                        await update.message.reply_text(f"❌ AI image generation failed:\n{error}")
+                        break
 
-            if result_image_url:
-                msg = f"✅ AI image generation completed!\nImage URL: {result_image_url}"
-                await update.message.reply_photo(photo=result_image_url, caption=msg)
-                break
-
-            elif error:
-                await update.message.reply_text(f"❌ AI image generation failed:\n{error}")
-                break
-            else:
-                await asyncio.sleep(30)
-                continue
+            await asyncio.sleep(30)
 
 async def capture_store_details(store_id, store_name, address, whatsapp_number, instagram_id, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -121,8 +123,9 @@ async def capture_store_details(store_id, store_name, address, whatsapp_number, 
         "name": store_name,
         "address": address,
         "whatsapp_contact": whatsapp_number,
-        "instagram_id": instagram_id
     }
+    if instagram_id:
+        payload["instagram_id"] = instagram_id
     async with aiohttp.ClientSession() as session:
         async with session.put(f"{base_url}/apiv2/storefront/info/{store_id}/", json=payload, headers=headers) as response:
             return await response.json()
