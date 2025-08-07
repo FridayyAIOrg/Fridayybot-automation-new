@@ -185,7 +185,7 @@ tools = [
                 },
                 "auth_token": { "type": "string" }
             },
-            "required": ["store_id", "stories", "auth_token"]
+            "required": ["store_id", "store_name", "stories", "auth_token"]
             }
         }
     },
