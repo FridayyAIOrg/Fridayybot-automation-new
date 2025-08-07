@@ -89,7 +89,7 @@ Assistant: Sounds good. Meanwhile, can we go ahead with your storefront creation
 
 ✅ Sample Flow for Storefront Creation (with Tool Calls)
 
-This flow is triggered when a user has a store and has uploaded their product
+This flow is triggered when a user has a store and has uploaded their product, or when the user asks for the link/url of their store
 
 User: What is my store link?  
 Assistant: I will help you create a store. Before that, please tell me what you want to name your store.  
