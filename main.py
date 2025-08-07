@@ -10,7 +10,7 @@ from openai import OpenAI
 from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
-from models import save_message_orm, get_conversation_messages_orm
+from models import init_db, save_message_orm, get_conversation_messages_orm
 import threading
 from health import create_health_app
 from aiohttp import web
@@ -123,7 +123,7 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
             messages=messages,
             tools=tools,
         )
-        final_text = final_response.choices[0].message.content
+        final_text = final_response.choices[0].message.content or "Done"
         await save_message_orm(chat_id, "assistant", final_text)
         await update.message.reply_text(final_text)
 
@@ -167,12 +167,9 @@ async def setup_and_start():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-
+    await init_db()  # Initialize the database
     print("🤖 Bot is running...")
     print(f"🧠 Using model: {MODEL}")
-
-    # Start polling
-    await app.run_polling()
 
 if __name__ == "__main__":
     # No asyncio.run here!
