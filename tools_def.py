@@ -54,6 +54,7 @@ tools = [
                 "image_urls": {
                     "type": "array",
                     "items": { "type": "string" },
+                    "maxItems": 2,
                     "description": "Image URLs (e.g., from Telegram) to be uploaded"
                 },
                 "store_id": {
