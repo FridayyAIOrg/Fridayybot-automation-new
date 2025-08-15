@@ -82,39 +82,40 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
 
     # If tool call triggered
     if hasattr(assistant_msg, "tool_calls") and assistant_msg.tool_calls:
-        for tool_call in assistant_msg.tool_calls:
-            tool_name = tool_call.function.name
-            tool_args = json.loads(tool_call.function.arguments)
+        print(assistant_msg.tool_calls)
+        tool_call = assistant_msg.tool_calls[0]
+        tool_name = tool_call.function.name
+        tool_args = json.loads(tool_call.function.arguments)
 
-            await save_message_orm(
-                chat_id,
-                role="assistant",
-                content=tool_call.function.arguments,
-                name=tool_call.function.name,
-                tool_call_id=tool_call.id
-            )
+        await save_message_orm(
+            chat_id,
+            role="assistant",
+            content=tool_call.function.arguments,
+            name=tool_call.function.name,
+            tool_call_id=tool_call.id
+        )
 
-            try:
-                # Call tool function
-                if tool_name == "generate_ai_image":
-                    tool_args["update"] = update
-                tool_result = await TOOL_MAPPING[tool_name](**tool_args)
-                tool_content = json.dumps(tool_result)
+        try:
+            # Call tool function
+            if tool_name == "generate_ai_image":
+                tool_args["update"] = update
+            tool_result = await TOOL_MAPPING[tool_name](**tool_args)
+            tool_content = json.dumps(tool_result)
 
-            except Exception as e:
-                # Gracefully handle tool failure
-                print(f"Tool call error for {tool_name}: {e}")
-                tool_content = json.dumps({"error": f"Something went wrong while executing {tool_name}"})
+        except Exception as e:
+            # Gracefully handle tool failure
+            print(f"Tool call error for {tool_name}: {e}")
+            tool_content = json.dumps({"error": f"Something went wrong while executing {tool_name}"})
 
-            # Append assistant & tool result to context
-            messages.append(assistant_msg)
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "name": tool_name,
-                "content": tool_content,
-            })
-            await save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
+        # Append assistant & tool result to context
+        messages.append(assistant_msg)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tool_call.id,
+            "name": tool_name,
+            "content": tool_content,
+        })
+        await save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
 
         # Final LLM call with tool result
         final_response = openai_client.chat.completions.create(
