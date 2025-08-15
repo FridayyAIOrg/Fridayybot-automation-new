@@ -169,7 +169,7 @@ async def setup_and_start():
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     print("🤖 Bot is running...")
     print(f"🧠 Using model: {MODEL}")
+    await app.run_polling()
 
 if __name__ == "__main__":
-    # No asyncio.run here!
     asyncio.get_event_loop().run_until_complete(setup_and_start())
