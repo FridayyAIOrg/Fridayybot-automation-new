@@ -203,5 +203,58 @@ tools = [
                 "required": ["store_id", "auth_token"]
             }
         }
+    },
+        {
+        "type": "function",
+        "function": {
+            "name": "get_all_products",
+            "description": "Fetch all products for a given store. Requires bearer auth.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "store_id": { "type": "string", "description": "Store ID" },
+                    "auth_token": { "type": "string", "description": "Bearer token" }
+                },
+                "required": ["store_id", "auth_token"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_product",
+            "description": "Update a product by ID using a full product payload. Requires bearer auth.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product_id": { "type": "string", "description": "Product ID to update" },
+                    "product_payload": {
+                        "type": "object",
+                        "description": "Full product object to PUT (fields like product_info, product_name, mrp, images, visibility, descriptions, features, etc.)"
+                    },
+                    "auth_token": { "type": "string", "description": "Bearer token" }
+                },
+                "required": ["product_id", "product_payload", "auth_token"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_storefront_info",
+            "description": "Update storefront info (name, address lines, phones, instagram_id, description, email, about_store, what_we_do, etc.). Requires bearer auth.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "store_id": { "type": "string", "description": "Store ID" },
+                    "storefront_payload": {
+                        "type": "object",
+                        "description": "Full storefront info object to PUT"
+                    },
+                    "auth_token": { "type": "string", "description": "Bearer token" }
+                },
+                "required": ["store_id", "storefront_payload", "auth_token"]
+            }
+        }
     }
 ]

@@ -174,6 +174,54 @@ async def get_storefront_link(store_id, auth_token):
             return {"storefront_link": storefront_link}
 
 # -------------------------
+# NEW: PRODUCT & STOREFRONT MANAGEMENT
+# -------------------------
+
+async def get_all_products(store_id, auth_token):
+    """
+    GET /ocr/get_all_products/?store_id={store_id}
+    """
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"{base_url}/ocr/get_all_products/",
+            params={"store_id": str(store_id)},
+            headers=headers
+        ) as response:
+            return await response.json()
+
+
+async def update_product(product_id, product_payload, auth_token):
+    """
+    PUT /ocr/store/product/{product_id}/
+    Body: full product payload as provided by the client
+    """
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    async with aiohttp.ClientSession() as session:
+        async with session.put(
+            f"{base_url}/ocr/store/product/{product_id}/",
+            json=product_payload,
+            headers=headers
+        ) as response:
+            return await response.json()
+
+
+async def update_storefront_info(store_id, storefront_payload, auth_token):
+    """
+    PUT /apiv2/storefront/info/{store_id}/
+    Body: storefront payload (name, store_address_line_1, store_address_line_2, whatsapp_number, phone_number,
+          instagram_id, description, email, about_store, what_we_do, etc.)
+    """
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    async with aiohttp.ClientSession() as session:
+        async with session.put(
+            f"{base_url}/apiv2/storefront/info/{store_id}/",
+            json=storefront_payload,
+            headers=headers
+        ) as response:
+            return await response.json()
+
+# -------------------------
 # TOOL MAPPING
 # -------------------------
 
@@ -187,4 +235,7 @@ TOOL_MAPPING = {
     "upload_store_images": upload_store_images,
     "capture_store_story": capture_store_story,
     "get_storefront_link": get_storefront_link,
+    "get_all_products": get_all_products,
+    "update_product": update_product,
+    "update_storefront_info": update_storefront_info
 }
