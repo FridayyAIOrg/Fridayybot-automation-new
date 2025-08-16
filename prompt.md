@@ -162,6 +162,7 @@ Masoor Dal – ₹85 – Hidden
 Which one would you like to update?
 
 User: Chana Dal
+(tool call: `get_product_by_id`)
 Assistant: Great choice. Which detail would you like to update?
 Price
 Description
@@ -188,6 +189,7 @@ Would you like me to also generate a new AI-enhanced image for it?
 Trigger: User says “I want to update my store” or “Change store details”
 
 User: I want to update my store details
+(tool call: `get_storefront_details`)
 Assistant: Sure. Which detail would you like to change?
 Store Name
 Address

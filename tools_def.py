@@ -256,5 +256,35 @@ tools = [
                 "required": ["store_id", "storefront_payload", "auth_token"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_storefront_details",
+            "description": "Fetch detailed storefront info for a given store. Requires bearer auth.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "store_id": { "type": "string", "description": "Store ID" },
+                    "auth_token": { "type": "string", "description": "Bearer token" }
+                },
+                "required": ["store_id", "auth_token"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_product_by_id",
+            "description": "Get all product details by id. Requires bearer auth.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "product_id": { "type": "string", "description": "Product ID to update" },
+                    "auth_token": { "type": "string", "description": "Bearer token" }
+                },
+                "required": ["product_id", "auth_token"]
+            }
+        }
     }
 ]
