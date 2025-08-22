@@ -102,7 +102,9 @@ Assistant: Sounds good. Meanwhile, can we go ahead with your storefront creation
 Trigger: When user asks for store url and has a store with product already uploaded.
 
 User: What is my store link?  
-Assistant: I will help you create a store. Before that, please tell me what you want to name your store.  
+Assistant: (tool call → `get_storefront_link`)
+Assistant: (if store url is returned -> Send 'Here’s your store link: https://fridayy.ai/store/mittikala'. else -> Continue flow below.)  
+Assistant: I see you don't have a storefront yet! I will help you create a storefront. Before that, please tell me what you want to name your store.  
 
 User: My store name is Mitti Kala  
 Assistant: Thank you! Please tell me the following details about your store:  

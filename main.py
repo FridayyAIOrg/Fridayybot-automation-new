@@ -36,68 +36,80 @@ async def get_telegram_file_url(context: ContextTypes.DEFAULT_TYPE, file_id: str
         return f"Error fetching file: {e}"
 
 # Main processing logic for LLM + tool
-async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_content):
+async def process_llm(update: Update, user_content: str):
+    """
+    Processes a user message, handling single or multi-turn tool calls in a loop
+    before providing a final response.
+    """
     chat_id = str(update.effective_chat.id)
 
-    # Load conversation history
+    # 1. Load and format conversation history
     conversation_history = await get_conversation_messages_orm(chat_id)
-
-    # Format messages
-    messages = [{"role": "system", "content": system_prompt}]
+    messages: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
     for msg in conversation_history:
         if msg.role == "system":
             continue
-
+        
         formatted = {"role": msg.role, "content": msg.content}
-
         if msg.role == "tool" and msg.tool_call_id:
             formatted["tool_call_id"] = msg.tool_call_id
-
+        
         if msg.role == "assistant" and msg.name and msg.tool_call_id:
-            formatted["tool_calls"] = [
-                {
-                    "id": msg.tool_call_id,
-                    "function": {
-                        "name": msg.name,
-                        "arguments": msg.content,
-                    },
-                    "type": "function",
-                }
-            ]
+            formatted["tool_calls"] = [{
+                "id": msg.tool_call_id,
+                "function": {"name": msg.name, "arguments": msg.content},
+                "type": "function",
+            }]
             formatted["content"] = None
-
+        
         messages.append(formatted)
 
-    # Add new user content
+    # 2. Add new user message
     messages.append({"role": "user", "content": user_content})
     await save_message_orm(chat_id, "user", user_content)
 
-    # First LLM call
-    response = openai_client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        tools=tools,
-    )
-    assistant_msg = response.choices[0].message
+    # 3. Start the conversation loop
+    while True:
+        # Make the API call
+        response = openai_client.chat.completions.create(
+            model=MODEL,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto",
+        )
+        assistant_msg = response.choices[0].message
 
-    # If tool call triggered
-    if hasattr(assistant_msg, "tool_calls") and assistant_msg.tool_calls:
+        # If there are no tool calls, the conversation is over.
+        # Break the loop and proceed to give the final answer.
+        if not assistant_msg.tool_calls:
+            messages.append(assistant_msg) # Append final assistant message
+            break
+
+        # --- If there ARE tool calls, process them ---
+        # First, append the assistant's request to call tools to the message history
+        messages.append(assistant_msg)
+
+        # Process each tool call requested in this turn
         for tool_call in assistant_msg.tool_calls:
             tool_name = tool_call.function.name
             tool_args = json.loads(tool_call.function.arguments)
 
+            # Save the assistant's request to call a tool
             await save_message_orm(
                 chat_id,
                 role="assistant",
                 content=tool_call.function.arguments,
-                name=tool_call.function.name,
+                name=tool_name,
                 tool_call_id=tool_call.id
             )
 
+            print(f"Executing tool: {tool_name} with args: {tool_args}")
             try:
-                # Call tool function
+                # Special handling for tools that need extra context
                 if tool_name == "generate_ai_image":
                     tool_args["update"] = update
+                
+                # Call the corresponding tool function
                 tool_result = await TOOL_MAPPING[tool_name](**tool_args)
                 tool_content = json.dumps(tool_result)
 
@@ -106,8 +118,7 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
                 print(f"Tool call error for {tool_name}: {e}")
                 tool_content = json.dumps({"error": f"Something went wrong while executing {tool_name}"})
 
-            # Append assistant & tool result to context
-            messages.append(assistant_msg)
+            # Append the tool's result to the message history for the next iteration
             messages.append({
                 "role": "tool",
                 "tool_call_id": tool_call.id,
@@ -115,26 +126,18 @@ async def process_llm(update: Update, context: ContextTypes.DEFAULT_TYPE, user_c
                 "content": tool_content,
             })
             await save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
-
-        # Final LLM call with tool result
-        final_response = openai_client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            tools=tools,
-        )
-        final_text = final_response.choices[0].message.content or "Done"
-        await save_message_orm(chat_id, "assistant", final_text)
-        await update.message.reply_text(final_text)
-
-    else:
-        reply = assistant_msg.content or "I didn't understand that."
-        await save_message_orm(chat_id, "assistant", reply)
-        await update.message.reply_text(reply)
+        
+        # The loop will now continue, sending the tool results back to the model
+    final_message = messages[-1]
+    final_text = final_message.content or "Done."
+    
+    await save_message_orm(chat_id, "assistant", final_text)
+    await update.message.reply_text(final_text)
 
 # Text message handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
-    await process_llm(update, context, user_input)
+    await process_llm(update, user_input)
 
 # Image upload handler
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -150,7 +153,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     image_url: str = await get_telegram_file_url(context, best_photo.file_id)
     print(image_url)
     user_content = f"User uploaded the following image: {image_url}"
-    await process_llm(update, context, user_content)
+    await process_llm(update, user_content)
 
 async def run_health_server():
     app = create_health_app()

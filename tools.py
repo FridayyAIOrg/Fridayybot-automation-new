@@ -81,7 +81,6 @@ async def generate_ai_image(update, product_id, store_id, image_url, auth_token)
 
     job_id = data.get("job_id")
     if not job_id:
-        print("No job_id returned from image generation API")
         return data
 
     # Schedule polling as background task (don't await here)
@@ -108,6 +107,7 @@ async def poll_image_generation(update, job_id, headers):
                             image_url = image.get("value")
                             if image_url and image_type:
                                 caption = f"✅ {image_type.capitalize()} image generated!"
+                                #process_llm(update, f"User has been sent the image: {image_type.capitalize()} ")
                                 await update.message.reply_photo(photo=image_url, caption=caption)
                         break
 
@@ -154,24 +154,47 @@ async def upload_store_images(store_id, image_urls, image_type, auth_token):
         async with session.put(f"{base_url}/apiv2/about_images/", data=data, headers=headers) as response:
             return await response.json()
 
-async def capture_store_story(store_id, store_name, stories: dict, auth_token):
+async def capture_store_story(store_id, store_name, stories: dict, auth_token: str):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "store_id": store_id,
         "store_name": store_name,
         "details": stories
     }
+
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"{base_url}/bot/generate_store_profile/", json=payload, headers=headers) as response:
-            return await response.json()
+        # First API call: generate store profile
+        async with session.post(
+            f"{base_url}/bot/generate_store_profile/",
+            json=payload,
+            headers=headers
+        ) as response:
+            profile_response = await response.json()
+        # Second API call: update storefront info
+        update_payload = {"is_storefront_exists": True}
+        async with session.put(
+            f"{base_url}/apiv2/storefront/info/{store_id}",
+            json=update_payload,
+            headers=headers
+        ) as update_response:
+            update_result = await update_response.json()
+
+    return {"profile_response": profile_response}
 
 async def get_storefront_link(store_id, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"{base_url}/apiv2/storefront/get_info/{store_id}/", headers=headers) as response:
+        async with session.get(
+            f"{base_url}/apiv2/storefront/get_info/{store_id}/",
+            headers=headers
+        ) as response:
             data = await response.json()
-            storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
-            return {"storefront_link": storefront_link}
+
+            if data.get("is_storefront_exists"):
+                storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
+                return {"storefront_link": storefront_link}
+            else:
+                return {"storefront_link": None, "message": "Storefront does not exist yet, ask the user to set it up with reference flow."}
 
 # -------------------------
 # NEW: PRODUCT & STOREFRONT MANAGEMENT
@@ -192,7 +215,7 @@ async def get_all_products(store_id, auth_token):
 
 async def get_product_by_id(product_id, auth_token):
     """
-    GET /ocr/get_all_products/?store_id={store_id}
+    GET /ocr/store/product/{product_id}
     """
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
@@ -204,7 +227,7 @@ async def get_product_by_id(product_id, auth_token):
 
 async def get_storefront_details(store_id, auth_token):
     """
-    GET /ocr/get_all_products/?store_id={store_id}
+    GET /ocr/storefront/get_info/{store_id}
     """
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
@@ -214,20 +237,51 @@ async def get_storefront_details(store_id, auth_token):
         ) as response:
             return await response.json()
         
-async def update_product(product_id, product_payload, auth_token):
+async def update_product(
+    product_id: int,
+    auth_token: str,
+    product_name: str = None,
+    mrp: float = None,
+    is_visible_in_storefront: bool = None,
+    short_description: str = None,
+    introduction: str = None,
+    key_features: list = None,
+    benefits_and_applications: list = None,
+    inventory: int = None
+):
     """
     PUT /ocr/store/product/{product_id}/
-    Body: full product payload as provided by the client
+    Updates product fields. All params optional.
     """
+
     headers = {"Authorization": f"Bearer {auth_token}"}
+
+    payload = {}
+
+    if product_name is not None:
+        payload["product_name"] = product_name
+    if mrp is not None:
+        payload["mrp"] = mrp
+    if is_visible_in_storefront is not None:
+        payload["is_visible_in_storefront"] = is_visible_in_storefront
+    if short_description is not None:
+        payload["short_description"] = short_description
+    if introduction is not None:
+        payload["introduction"] = introduction
+    if key_features is not None:
+        payload["key_features"] = key_features
+    if benefits_and_applications is not None:
+        payload["benefits_and_applications"] = benefits_and_applications
+    if inventory is not None:
+        payload["inventory"] = inventory
+
     async with aiohttp.ClientSession() as session:
         async with session.put(
             f"{base_url}/ocr/store/product/{product_id}/",
-            json=product_payload,
+            json=payload,
             headers=headers
         ) as response:
             return await response.json()
-
 
 async def update_storefront_info(store_id, storefront_payload, auth_token):
     """

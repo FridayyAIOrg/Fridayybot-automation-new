@@ -1,0 +1,19 @@
+meta {
+  name: Get all products
+  type: http
+  seq: 13
+}
+
+get {
+  url: https://dev.fridayy.ai/ocr/get_all_products/?store_id=445
+  body: none
+  auth: bearer
+}
+
+params:query {
+  store_id: 445
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1MzYwNzk1LCJpYXQiOjE3NTUzNTM1OTUsImp0aSI6ImMzZDhiZGIxMDQ3YzQ3ZjY5NjM3NDZmN2JkZTI5MjhmIiwidXNlcl9pZCI6MTk1fQ.zWL1Hhb2RGgB1A0MGGFubiuFHRr3ylgtrVFMO5h07rM
+}

@@ -223,18 +223,54 @@ tools = [
         "type": "function",
         "function": {
             "name": "update_product",
-            "description": "Update a product by ID using a full product payload. Requires bearer auth.",
+            "description": "Update a product by ID. Only allows updating specific editable fields. Requires bearer auth.",
             "parameters": {
-                "type": "object",
-                "properties": {
-                    "product_id": { "type": "string", "description": "Product ID to update" },
-                    "product_payload": {
-                        "type": "object",
-                        "description": "Full product object to PUT (fields like product_info, product_name, mrp, images, visibility, descriptions, features, etc.)"
-                    },
-                    "auth_token": { "type": "string", "description": "Bearer token" }
+            "type": "object",
+            "properties": {
+                "product_id": {
+                "type": "string",
+                "description": "Product ID to update"
                 },
-                "required": ["product_id", "product_payload", "auth_token"]
+                "auth_token": {
+                "type": "string",
+                "description": "Bearer token for authentication"
+                },
+                "product_name": {
+                "type": "string",
+                "description": "Name of the product"
+                },
+                "mrp": {
+                "type": "number",
+                "description": "Price of the product (MRP)"
+                },
+                "is_visible_in_storefront": {
+                "type": "boolean",
+                "description": "Whether the product is visible in the storefront"
+                },
+                "short_description": {
+                "type": "string",
+                "description": "Short description of the product"
+                },
+                "introduction": {
+                "type": "string",
+                "description": "Introduction or overview of the product"
+                },
+                "key_features": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of key features"
+                },
+                "benefits_and_applications": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of benefits and applications"
+                },
+                "inventory": {
+                "type": "integer",
+                "description": "Available inventory quantity"
+                }
+            },
+            "required": ["product_id", "auth_token"]
             }
         }
     },

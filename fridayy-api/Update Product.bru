@@ -1,0 +1,42 @@
+meta {
+  name: Update Product
+  type: http
+  seq: 16
+}
+
+put {
+  url: https://dev.fridayy.ai/ocr/store/product/20204/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU1ODEyMjQ5LCJpYXQiOjE3NTU4MDUwNDksImp0aSI6IjM1N2VmZjUyNzk3NzRhNmFhNjMxOTk1OTE4YWNhMGUzIiwidXNlcl9pZCI6MTk1fQ._5_FTjpBBjj0Gj4VNzbjoQIL2M1wDPiV4o7MFyYUjI8
+}
+
+body:json {
+  {
+    "product_name": "Motorcycle Phone Mount",
+    "mrp": "undefined",
+    "is_visible_in_storefront": true,
+    "short_description": "Bobo Universal Phone Mount for Bikes and Motorcycles - Your Perfect Riding Companion! This sturdy handlebar mount works with any smartphone, offering a super secure grip that keeps your device safe during rides. Designed with adjustable clamps and a smart anti-vibration system, this black mount ensures your phone stays exactly where you want it, whether you're cycling through city streets or cruising on a motorcycle.",
+    "introduction": "Looking for a rock-solid phone mount that keeps your device safe during rides? Our universal handlebar phone mount is the perfect solution for motorcycle and bicycle enthusiasts. Designed to handle rough roads and vibrations, this mount ensures your phone stays secure and visible while you navigate through different terrains. Whether you're a daily commuter, adventure rider, or weekend explorer, this phone holder offers the ultimate protection and convenience for your mobile device.",
+    "key_features": [
+      "Universal Compatibility: Fits most smartphone sizes and models with its adjustable grip design",
+      "Robust Mounting System: Strong clamp mechanism secures your phone tightly on handlebars",
+      "360-Degree Rotation: Allows flexible viewing angles for easy navigation and visibility",
+      "Anti-Vibration Technology: Reduces road vibrations to protect your phone from damage",
+      "Durable Construction: Made from high-quality ABS plastic and metal for long-lasting performance",
+      "Easy Installation: Simple clamp system that works with most bicycle and motorcycle handlebars"
+    ],
+    "benefits_and_applications": [
+      "Perfect for motorcycle and bicycle riders who need hands-free navigation",
+      "Ideal for GPS tracking during long rides and outdoor adventures",
+      "Protects your phone from sudden movements and road bumps",
+      "Suitable for cycling, mountain biking, urban commuting, and long-distance riding",
+      "Keeps your phone within easy view without compromising safety",
+      "Works great for delivery riders, cyclists, and outdoor sports enthusiasts"
+    ],
+    "inventory": null
+  }
+}
