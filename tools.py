@@ -179,7 +179,7 @@ async def capture_store_story(store_id, store_name, stories: dict, auth_token: s
         ) as update_response:
             update_result = await update_response.json()
 
-    return {"profile_response": profile_response}
+    return {"profile_response": profile_response, "update_result": update_result}
 
 async def get_storefront_link(store_id, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
