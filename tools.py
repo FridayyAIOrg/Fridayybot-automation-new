@@ -173,7 +173,7 @@ async def capture_store_story(store_id, store_name, stories: dict, auth_token: s
         # Second API call: update storefront info
         update_payload = {"is_storefront_exists": True}
         async with session.put(
-            f"{base_url}/apiv2/storefront/info/{store_id}",
+            f"{base_url}/apiv2/storefront/info/{store_id}/",
             json=update_payload,
             headers=headers
         ) as update_response:
@@ -279,6 +279,21 @@ async def update_product(
         async with session.put(
             f"{base_url}/ocr/store/product/{product_id}/",
             json=payload,
+            headers=headers
+        ) as response:
+            return await response.json()
+
+async def update_storefront_info(store_id, storefront_payload, auth_token):
+    """
+    PUT /apiv2/storefront/info/{store_id}/
+    Body: storefront payload (name, store_address_line_1, store_address_line_2, whatsapp_number, phone_number,
+          instagram_id, description, email, about_store, what_we_do, etc.)
+    """
+    headers = {"Authorization": f"Bearer {auth_token}"}
+    async with aiohttp.ClientSession() as session:
+        async with session.put(
+            f"{base_url}/apiv2/storefront/info/{store_id}/",
+            json=storefront_payload,
             headers=headers
         ) as response:
             return await response.json()
