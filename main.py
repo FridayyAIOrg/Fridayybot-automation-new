@@ -80,15 +80,35 @@ async def process_llm(update: Update, user_content: str):
         )
         assistant_msg = response.choices[0].message
 
-        # If there are no tool calls, the conversation is over.
-        # Break the loop and proceed to give the final answer.
+        # If there are no tool calls, this is the final response
         if not assistant_msg.tool_calls:
-            messages.append(assistant_msg) # Append final assistant message
-            break
+            # Use the response content directly, not from messages array
+            final_text = assistant_msg.content or "Done."
+            
+            # Clean any potential reasoning artifacts
+            final_text = clean_response_content(final_text)
+            
+            # Save and send the final response
+            await save_message_orm(chat_id, "assistant", final_text)
+            await update.message.reply_text(final_text)
+            return  # Exit the function
 
         # --- If there ARE tool calls, process them ---
         # First, append the assistant's request to call tools to the message history
-        messages.append(assistant_msg)
+        messages.append({
+            "role": "assistant",
+            "content": assistant_msg.content,
+            "tool_calls": [
+                {
+                    "id": tool_call.id,
+                    "type": "function",
+                    "function": {
+                        "name": tool_call.function.name,
+                        "arguments": tool_call.function.arguments
+                    }
+                } for tool_call in assistant_msg.tool_calls
+            ]
+        })
 
         # Process each tool call requested in this turn
         for tool_call in assistant_msg.tool_calls:
@@ -127,13 +147,44 @@ async def process_llm(update: Update, user_content: str):
                 "content": tool_content,
             })
             await save_message_orm(chat_id, "tool", tool_content, name=tool_name, tool_call_id=tool_call.id)
-        
-        # The loop will now continue, sending the tool results back to the model
-    final_message = messages[-1]
-    final_text = final_message.content or "Done."
+
+
+def clean_response_content(content: str) -> str:
+    """Remove any internal reasoning or system artifacts from response"""
+    if not content:
+        return "Done."
     
-    await save_message_orm(chat_id, "assistant", final_text)
-    await update.message.reply_text(final_text)
+    # Remove common reasoning patterns that might leak through
+    lines = content.split('\n')
+    cleaned_lines = []
+    skip_next = False
+    
+    for line in lines:
+        line = line.strip()
+        
+        # Skip empty lines at the start
+        if not cleaned_lines and not line:
+            continue
+            
+        # Skip lines that look like internal reasoning
+        reasoning_indicators = [
+            'Looking at', 'The issue', 'The problem', 'Solution', 'Here are',
+            'This appears to be', 'It seems', 'The bot', 'Any way we can',
+            'Code:', 'Let\'s', 'So respond:', 'Use the exact phrase:',
+            'To be safe', 'Best to', 'Perhaps we', 'So current',
+            'But system expects', 'But now', 'However earlier'
+        ]
+        
+        if any(line.startswith(indicator) for indicator in reasoning_indicators):
+            continue
+            
+        if 'reasoning' in line.lower() or 'artifact' in line.lower():
+            continue
+            
+        cleaned_lines.append(line)
+    
+    result = '\n'.join(cleaned_lines).strip()
+    return result if result else "Done."
 
 # Text message handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
