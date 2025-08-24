@@ -72,7 +72,8 @@ async def generate_ai_image(update, product_id, store_id, image_url, auth_token)
         "product_id": product_id,
         "store_id": store_id,
         "image_url": image_url,
-        "generation_type": "both"
+        "generation_type": "both",
+        "platform": "bot"
     }
 
     async with aiohttp.ClientSession() as session:
