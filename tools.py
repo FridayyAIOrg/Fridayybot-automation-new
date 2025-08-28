@@ -1,6 +1,7 @@
 # tools.py
 import asyncio
 from io import BytesIO
+from urllib.parse import urlencode
 import aiohttp
 
 base_url = "https://dev.fridayy.ai"
@@ -30,11 +31,20 @@ async def create_store(categories, token):
 # PRODUCT CREATION FLOW
 # -------------------------
 
-async def upload_product_images(image_urls, store_id, auth_token):
-    files = []
+async def create_product(
+    image_urls,
+    store_id,
+    product_name,
+    MRP,
+    application,
+    material,
+    auth_token
+):
     headers = {"Authorization": f"Bearer {auth_token}"}
 
     async with aiohttp.ClientSession() as session:
+        # ---------- Upload Product Images ----------
+        files = []
         for i, url in enumerate(image_urls):
             async with session.get(url) as response:
                 if response.status == 200:
@@ -45,26 +55,33 @@ async def upload_product_images(image_urls, store_id, auth_token):
 
         data = aiohttp.FormData()
         data.add_field('store_id', str(store_id))
-        
         for field_name, file_tuple in files:
             filename, file_obj, content_type = file_tuple
             data.add_field(field_name, file_obj.getvalue(), filename=filename, content_type=content_type)
 
         async with session.post(f"{base_url}/bot/upload_image/", data=data, headers=headers) as response:
-            return await response.json()
+            upload_result = await response.json()
 
-async def generate_description(product_id, product_name, MRP, application, material, auth_token):
-    headers = {"Authorization": f"Bearer {auth_token}"}
-    payload = {
-        "product_id": product_id,
-        "product_name": product_name,
-        "MRP": MRP,
-        "application": application,
-        "material": material
-    }
-    async with aiohttp.ClientSession() as session:
+        # Extract product_id from upload response
+        product_id = upload_result.get("product_id")
+        if not product_id:
+            return {"error": "Failed to get product_id from upload response", "upload_result": upload_result}
+
+        # ---------- Generate Description ----------
+        payload = {
+            "product_id": product_id,
+            "product_name": product_name,
+            "MRP": MRP,
+            "application": application,
+            "material": material
+        }
         async with session.post(f"{base_url}/bot/generate_description/", json=payload, headers=headers) as response:
-            return await response.json()
+            description_result = await response.json()
+
+    return {
+        "upload_result": upload_result,
+        "description_result": description_result
+    }
 
 async def generate_ai_image(update, product_id, store_id, image_url, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -299,6 +316,34 @@ async def update_storefront_info(store_id, storefront_payload, auth_token):
         ) as response:
             return await response.json()
 
+async def generate_product_edit_link(phone: str, product_id: int) -> str:
+    """
+    Generate one-click product edit link.
+    
+    Args:
+        phone (str): Phone number linked to the store.
+        product_id (int): Product ID to edit.
+    
+    Returns:
+        str: One-click product edit link.
+    """
+    params = urlencode({"phone": phone, "productId": product_id})
+    return f"https://development.fridayy.ai/edit/product?{params}"
+
+
+async def generate_store_edit_link(phone: str) -> str:
+    """
+    Generate one-click store edit link.
+    
+    Args:
+        phone (str): Phone number linked to the store.
+    
+    Returns:
+        str: One-click store edit link.
+    """
+    params = urlencode({"phone": phone})
+    return f"https://development.fridayy.ai/edit/store?{params}"
+
 # -------------------------
 # TOOL MAPPING
 # -------------------------
@@ -306,8 +351,7 @@ async def update_storefront_info(store_id, storefront_payload, auth_token):
 TOOL_MAPPING = {
     "auth_vendor": auth_vendor,
     "create_store": create_store,
-    "upload_product_images": upload_product_images,
-    "generate_description": generate_description,
+    "create_product": create_product,
     "generate_ai_image": generate_ai_image,
     "capture_store_details": capture_store_details,
     "upload_store_images": upload_store_images,
@@ -317,4 +361,6 @@ TOOL_MAPPING = {
     "get_product_by_id": get_product_by_id,
     "get_storefront_details": get_storefront_details,
     "update_product": update_product,
+    "generate_product_edit_link": generate_product_edit_link,
+    "generate_store_edit_link": generate_store_edit_link,
 }

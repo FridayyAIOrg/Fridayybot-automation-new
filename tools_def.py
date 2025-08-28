@@ -46,49 +46,43 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "upload_product_images",
-            "description": "Upload product images from Telegram URLs to the server. Requires a bearer auth token.",
+            "name": "create_product",
+            "description": "Create a new product by uploading images and generating a description. Requires a bearer auth token.",
             "parameters": {
-                "type": "object",
-                "properties": {
+            "type": "object",
+            "properties": {
                 "image_urls": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "maxItems": 2,
-                    "description": "Image URLs (e.g., from Telegram) to be uploaded"
+                "type": "array",
+                "items": { "type": "string" },
+                "maxItems": 2,
+                "description": "Image URLs (e.g., from Telegram) to be uploaded"
                 },
                 "store_id": {
-                    "type": "string",
-                    "description": "The store ID to associate the images with"
+                "type": "string",
+                "description": "The store ID to associate the images with"
+                },
+                "product_name": {
+                "type": "string",
+                "description": "Name of the product"
+                },
+                "MRP": {
+                "type": "number",
+                "description": "Maximum retail price of the product"
+                },
+                "application": {
+                "type": "string",
+                "description": "Intended application or use of the product"
+                },
+                "material": {
+                "type": "string",
+                "description": "Material composition of the product"
                 },
                 "auth_token": {
-                    "type": "string",
-                    "description": "Bearer token for authentication"
+                "type": "string",
+                "description": "Bearer token for authentication"
                 }
-                },
-                "required": ["image_urls", "store_id", "auth_token"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "generate_description",
-            "description": "Generate the product description using product details. Requires a bearer auth token.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "product_id": { "type": "string" },
-                    "product_name": { "type": "string" },
-                    "MRP": { "type": "number" },
-                    "application": { "type": "string" },
-                    "material": { "type": "string" },
-                    "auth_token": {
-                    "type": "string",
-                    "description": "Bearer token for authentication"
-                    }
-                },
-                "required": ["product_id", "product_name", "MRP", "application", "material", "auth_token"]
+            },
+            "required": ["image_urls", "store_id", "product_name", "MRP", "application", "material", "auth_token"]
             }
         }
     },
@@ -303,5 +297,43 @@ tools = [
                 "required": ["product_id", "auth_token"]
             }
         }
-    }
+    },
+    {
+        "type": "function",
+        "function": {
+        "name": "generate_product_edit_link",
+        "description": "Generate a one-click link to edit a specific product in the store dashboard.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+            "phone": {
+                "type": "string",
+                "description": "Phone number linked to the store."
+            },
+            "product_id": {
+                "type": "integer",
+                "description": "Product ID to edit."
+            }
+            },
+            "required": ["phone", "product_id"]
+        }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+        "name": "generate_store_edit_link",
+        "description": "Generate a one-click link to edit the store details in the dashboard.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+            "phone": {
+                "type": "string",
+                "description": "Phone number linked to the store."
+            }
+            },
+            "required": ["phone"]
+        }
+        }
+    },
 ]

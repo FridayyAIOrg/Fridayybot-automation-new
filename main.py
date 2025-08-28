@@ -137,7 +137,7 @@ async def process_llm(update: Update, user_content: str):
             except Exception as e:
                 # Gracefully handle tool failure
                 print(f"Tool call error for {tool_name}: {e}")
-                tool_content = json.dumps({"error": f"Something went wrong while executing {tool_name}"})
+                tool_content = json.dumps({"error": f"Something went wrong while executing {tool_name}: {e}"})
 
             # Append the tool's result to the message history for the next iteration
             messages.append({
