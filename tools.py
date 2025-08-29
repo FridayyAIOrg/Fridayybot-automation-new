@@ -196,8 +196,13 @@ async def capture_store_story(store_id, store_name, stories: dict, auth_token: s
             headers=headers
         ) as update_response:
             update_result = await update_response.json()
-
-    return {"profile_response": profile_response, "update_result": update_result}
+        async with session.get(
+            f"{base_url}/apiv2/storefront/get_info/{store_id}/",
+            headers=headers
+        ) as response:
+            data = await response.json()
+            storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
+    return {"profile_response": profile_response, "update_result": update_result, "storefront_link": storefront_link}
 
 async def get_storefront_link(store_id, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
