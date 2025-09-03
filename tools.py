@@ -71,7 +71,7 @@ async def create_product(
         payload = {
             "product_id": product_id,
             "product_name": product_name,
-            "MRP": MRP,
+            "mrp": MRP,
             "application": application,
             "material": material
         }

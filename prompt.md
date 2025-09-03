@@ -166,7 +166,13 @@ Inventory
 Something else"
 USER: [specifies changes]
 
-IF requested change is supported (product_name, mrp, is_visible_in_storefront, short_description, introduction, key_features, benefits_and_applications, inventory):
+IF requested change is "Something Else" or not from the list above:
+
+     → CALL: generate_product_edit_link
+    YOU: "That detail can’t be updated directly here.
+    You can edit it manually using this one-click link: [link]"
+
+ELSE:
 
     YOU: "Got it. Here are the new details for confirmation: [list changes]
     Do you want me to proceed with updating this product?"
@@ -174,12 +180,7 @@ IF requested change is supported (product_name, mrp, is_visible_in_storefront, s
     USER: [Yes] 
     → CALL: update_product 
     YOU: "✅ Your product has been updated successfully!"
-
-ELSE (requested change is not supported by update_product):
-
-    → CALL: generate_product_edit_link
-    YOU: "That detail can’t be updated directly here.
-    You can edit it manually using this one-click link: [link]"
+   
 ```
 ## FLOW 4: Storefront UPDATE
 
