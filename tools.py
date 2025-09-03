@@ -140,7 +140,7 @@ async def capture_store_details(store_id, store_name, address, whatsapp_number, 
     payload = {
         "name": store_name,
         "address": address,
-        "whatsapp_contact": whatsapp_number,
+        "whatsapp_number": whatsapp_number,
     }
     if instagram_id:
         payload["instagram_id"] = instagram_id
