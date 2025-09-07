@@ -94,13 +94,17 @@ tools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "product_id": {
+                    "auth_token": { 
                         "type": "string",
-                        "description": "The unique ID of the product to generate images for"
+                        "description": "Bearer token for authentication"
                     },
-                    "store_id": {
+                    "product_id": { 
                         "type": "string",
-                        "description": "The store ID that the product belongs to"
+                        "description": "Product ID of the Image"
+                    },
+                    "store_id": { 
+                        "type": "string",
+                        "description": "Store ID of the User"
                     },
                     "image_url": {
                         "type": "string",
@@ -111,7 +115,7 @@ tools = [
                         "description": "Name of the product"
                     }
                 },
-                "required": ["product_id", "store_id", "image_url", "product_name"]
+                "required": ["image_url", "product_name", "product_id", "store_id", "auth_token"]
             }
         }
     },
