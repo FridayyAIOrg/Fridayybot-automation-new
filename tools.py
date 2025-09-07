@@ -3,6 +3,15 @@ import asyncio
 from io import BytesIO
 from urllib.parse import urlencode
 import aiohttp
+from openai import AsyncOpenAI
+
+from config import OPENROUTER_API_KEY
+
+
+client = AsyncOpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY,
+)
 
 base_url = "https://dev.fridayy.ai"
 
@@ -83,14 +92,11 @@ async def create_product(
         "description_result": description_result
     }
 
-async def generate_ai_image(update, product_id, store_id, image_url, auth_token):
+async def generate_ai_image_old(update, image_url, auth_token):
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
-        "product_id": product_id,
-        "store_id": store_id,
         "image_url": image_url,
         "generation_type": "both",
-        "platform": "bot"
     }
 
     async with aiohttp.ClientSession() as session:
@@ -104,6 +110,31 @@ async def generate_ai_image(update, product_id, store_id, image_url, auth_token)
     # Schedule polling as background task (don't await here)
     asyncio.create_task(poll_image_generation(update, job_id, headers))
     return "Image generation started, user will be sent images when done."
+
+async def generate_ai_image_old(update, product_name, image_url):
+    completion = await client.chat.completions.create(
+        model="google/gemini-2.5-flash-image-preview",
+        modalities=["image", "text"],
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Product in the photo is {product_name}. Create a background for it showing it being used."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"{image_url}"
+                        }
+                    }
+                ]
+            }
+        ]
+    )
+    data_url = completion.choices[0].message.images[0]["image_url"].get("url")
+    await update.message.reply_photo(photo=data_url, caption="✅ AI-generated image created!")
 
 async def poll_image_generation(update, job_id, headers):
     # Step 2: Poll Every 30 Seconds Until Done
@@ -139,7 +170,7 @@ async def capture_store_details(store_id, store_name, address, whatsapp_number, 
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "name": store_name,
-        "address": address,
+        "store_address_line_1": address,
         "whatsapp_number": whatsapp_number,
     }
     if instagram_id:

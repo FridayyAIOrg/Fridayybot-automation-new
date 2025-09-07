@@ -106,12 +106,12 @@ tools = [
                         "type": "string",
                         "description": "URL of the input image to enhance"
                     },
-                    "auth_token": {
+                    "product_name": {
                         "type": "string",
-                        "description": "Bearer token for authentication"
+                        "description": "Name of the product"
                     }
                 },
-                "required": ["product_id", "store_id", "image_url", "auth_token"]
+                "required": ["product_id", "store_id", "image_url", "product_name"]
             }
         }
     },
