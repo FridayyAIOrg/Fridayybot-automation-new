@@ -111,7 +111,7 @@ async def generate_ai_image_old(update, image_url, auth_token):
     asyncio.create_task(poll_image_generation(update, job_id, headers))
     return "Image generation started, user will be sent images when done."
 
-async def generate_ai_image_old(update, product_name, image_url):
+async def generate_ai_image(update, product_name, image_url):
     completion = await client.chat.completions.create(
         model="google/gemini-2.5-flash-image-preview",
         modalities=["image", "text"],
