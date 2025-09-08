@@ -4,7 +4,7 @@ from io import BytesIO
 from urllib.parse import urlencode
 import aiohttp
 from openai import AsyncOpenAI
-
+import traceback
 from config import OPENROUTER_API_KEY
 
 
@@ -41,12 +41,14 @@ async def create_store(categories, token):
 # -------------------------
 
 async def create_product(
+    update,
     image_urls,
     store_id,
     product_name,
     MRP,
     application,
     material,
+    ai_image,
     auth_token
 ):
     headers = {"Authorization": f"Bearer {auth_token}"}
@@ -75,7 +77,12 @@ async def create_product(
         product_id = upload_result.get("product_id")
         if not product_id:
             return {"error": "Failed to get product_id from upload response", "upload_result": upload_result}
-
+        if ai_image:
+            # ---------- Generate AI Image ----------
+            ai_image_result = await generate_ai_image_helper(update, auth_token, product_id, store_id, product_name, image_urls[0])
+            if "Error" in ai_image_result or "failed" in ai_image_result.lower():
+                return {"error": ai_image_result, "upload_result": upload_result}
+            
         # ---------- Generate Description ----------
         payload = {
             "product_id": product_id,
@@ -111,10 +118,7 @@ async def generate_ai_image_old(update, image_url, auth_token):
     asyncio.create_task(poll_image_generation(update, job_id, headers))
     return "Image generation started, user will be sent images when done."
 
-import aiohttp
-import traceback
-
-async def generate_ai_image(update, auth_token, product_id, store_id, product_name, image_url):
+async def generate_ai_image_helper(update, auth_token, product_id, store_id, product_name, image_url):
     try:
         # Step 1: Call the API to generate the image
         try:
@@ -184,6 +188,78 @@ async def generate_ai_image(update, auth_token, product_id, store_id, product_na
 
         await update.message.reply_photo(photo=uploaded_image_url, caption="✅ AI image generated successfully!")
         return "AI image generation completed and saved to product."
+
+    except Exception as e:
+        # Fallback for any unexpected errors
+        return f"Unexpected error: {str(e)}\n{traceback.format_exc()}"
+
+async def generate_ai_image(update, auth_token, product_name, image_url):
+    try:
+        # Step 1: Call the API to generate the image
+        try:
+            completion = await client.chat.completions.create(
+                model="google/gemini-2.5-flash-image-preview",
+                modalities=["image", "text"],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": f"Product in the photo is {product_name}. Create a background for it showing it being used."
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"{image_url}"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            )
+        except Exception as e:
+            return f"Error during AI image generation API call: {str(e)}\n{traceback.format_exc()}"
+
+        # Step 2: Extract Data URL
+        try:
+            data_url = completion.choices[0].message.images[0].get("image_url", {}).get("url")
+            if not data_url:
+                return "⚠️ AI image generation failed: No image returned."
+        except Exception as e:
+            return f"Error extracting Data URL: {str(e)}\n{traceback.format_exc()}"
+
+        # Step 3: Convert Data URL to base64
+        try:
+            base64_str = data_url.split(",")[1]
+        except Exception as e:
+            return f"Error converting Data URL to Base64: {str(e)}\n{traceback.format_exc()}"
+
+        # Step 4: Upload the AI image to your server
+        try:
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            payload = {
+                "base64_image": base64_str
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{base_url}/bot/upload_image_to_s3/", json=payload, headers=headers) as response:
+                    try:
+                        data = await response.json()
+                    except Exception:
+                        return "Failed to upload AI image, ask user to retry"
+            if response.status == 401 or (
+                isinstance(data, dict)
+                and data.get("code") == "token_not_valid"
+            ):
+                return "Authentication failed. Please re-authenticate."
+            uploaded_image_url = data.get("image_url")
+            if not uploaded_image_url:
+                return "No image URL returned from your server after upload."
+        except Exception as e:
+            return f"Error uploading AI image to server: {str(e)}\n{traceback.format_exc()}"
+
+        await update.message.reply_photo(photo=uploaded_image_url)
+        return "AI image generation completed and sent to user."
 
     except Exception as e:
         # Fallback for any unexpected errors

@@ -77,12 +77,16 @@ tools = [
                 "type": "string",
                 "description": "Material composition of the product"
                 },
+                "ai_image": {
+                "type": "boolean",
+                "description": "Whether to generate AI-enhanced images for the product"
+                },
                 "auth_token": {
                 "type": "string",
                 "description": "Bearer token for authentication"
                 }
             },
-            "required": ["image_urls", "store_id", "product_name", "MRP", "application", "material", "auth_token"]
+            "required": ["image_urls", "store_id", "product_name", "MRP", "application", "material", "ai_image", "auth_token"]
             }
         }
     },
@@ -98,14 +102,6 @@ tools = [
                         "type": "string",
                         "description": "Bearer token for authentication"
                     },
-                    "product_id": { 
-                        "type": "string",
-                        "description": "Product ID of the Image"
-                    },
-                    "store_id": { 
-                        "type": "string",
-                        "description": "Store ID of the User"
-                    },
                     "image_url": {
                         "type": "string",
                         "description": "URL of the input image to enhance"
@@ -115,7 +111,7 @@ tools = [
                         "description": "Name of the product"
                     }
                 },
-                "required": ["image_url", "product_name", "product_id", "store_id", "auth_token"]
+                "required": ["image_url", "product_name", "auth_token"]
             }
         }
     },

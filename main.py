@@ -129,7 +129,8 @@ async def process_llm(update: Update, user_content: str):
                 # Special handling for tools that need extra context
                 if tool_name == "generate_ai_image":
                     tool_args["update"] = update
-                
+                if tool_name == "create_product":
+                    tool_args["update"] = update
                 # Call the corresponding tool function
                 tool_result = await TOOL_MAPPING[tool_name](**tool_args)
                 tool_content = json.dumps(tool_result)
