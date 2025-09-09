@@ -6,7 +6,7 @@ import aiohttp
 from openai import AsyncOpenAI
 import traceback
 from config import OPENROUTER_API_KEY
-
+from models import update_state_variable, get_state_variable
 
 client = AsyncOpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -19,18 +19,21 @@ base_url = "https://dev.fridayy.ai"
 # AUTH & STORE FUNCTIONS
 # -------------------------
 
-async def auth_vendor(phone_no):
+async def auth_vendor(phone_no, conversation_id):
     async with aiohttp.ClientSession() as session:
         async with session.post(base_url + "/ocr/auth/vendor/", json={"phone_no": phone_no}) as response:
             data = await response.json()
+            user_token = data.get("access_token")
+            await update_state_variable(conversation_id, user_token)
             return {
-                "user_token": data.get("access_token"),
                 "store_id": data.get("store_id"),
                 "new_user": data.get("new_user")
             }
 
-async def create_store(categories, token):
-    headers = {"Authorization": f"Bearer {token}"}
+async def create_store(categories, conversation_id):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
+    headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.post(base_url + "/ocr/create_store/", json={"categories": categories}, headers=headers) as response:
             data = await response.json()
@@ -49,8 +52,10 @@ async def create_product(
     application,
     material,
     ai_image,
-    auth_token
+    conversation_id
 ):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
 
     async with aiohttp.ClientSession() as session:
@@ -99,7 +104,9 @@ async def create_product(
         "description_result": description_result
     }
 
-async def generate_ai_image_old(update, image_url, auth_token):
+async def generate_ai_image_old(update, image_url, conversation_id):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token   
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "image_url": image_url,
@@ -118,7 +125,7 @@ async def generate_ai_image_old(update, image_url, auth_token):
     asyncio.create_task(poll_image_generation(update, job_id, headers))
     return "Image generation started, user will be sent images when done."
 
-async def generate_ai_image_helper(update, auth_token, product_id, store_id, product_name, image_url):
+async def generate_ai_image_helper(update, conversation_id, product_id, store_id, product_name, image_url):
     try:
         # Step 1: Call the API to generate the image
         try:
@@ -162,6 +169,8 @@ async def generate_ai_image_helper(update, auth_token, product_id, store_id, pro
 
         # Step 4: Upload the AI image to your server
         try:
+            state = await get_state_variable(conversation_id)
+            auth_token = state.auth_token           
             headers = {"Authorization": f"Bearer {auth_token}"}
             payload = {
                 "product_id": product_id,
@@ -193,7 +202,7 @@ async def generate_ai_image_helper(update, auth_token, product_id, store_id, pro
         # Fallback for any unexpected errors
         return f"Unexpected error: {str(e)}\n{traceback.format_exc()}"
 
-async def generate_ai_image(update, auth_token, product_name, image_url):
+async def generate_ai_image(update, conversation_id, product_name, image_url):
     try:
         # Step 1: Call the API to generate the image
         try:
@@ -206,7 +215,7 @@ async def generate_ai_image(update, auth_token, product_name, image_url):
                         "content": [
                             {
                                 "type": "text",
-                                "text": f"Product in the photo is {product_name}. Create a background for it showing it being used."
+                                "text": f"Product photo is attached. Create a background for it showing it being used. You must respond with an image only, no text."
                             },
                             {
                                 "type": "image_url",
@@ -237,6 +246,8 @@ async def generate_ai_image(update, auth_token, product_name, image_url):
 
         # Step 4: Upload the AI image to your server
         try:
+            state = await get_state_variable(conversation_id)
+            auth_token = state.auth_token
             headers = {"Authorization": f"Bearer {auth_token}"}
             payload = {
                 "base64_image": base64_str
@@ -295,7 +306,9 @@ async def poll_image_generation(update, job_id, headers):
 
             await asyncio.sleep(30)
 
-async def capture_store_details(store_id, store_name, address, whatsapp_number, instagram_id, auth_token):
+async def capture_store_details(store_id, store_name, address, whatsapp_number, instagram_id, conversation_id):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token   
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "name": store_name,
@@ -308,7 +321,9 @@ async def capture_store_details(store_id, store_name, address, whatsapp_number, 
         async with session.put(f"{base_url}/apiv2/storefront/info/{store_id}/", json=payload, headers=headers) as response:
             return await response.json()
 
-async def upload_store_images(store_id, image_urls, image_type, auth_token):
+async def upload_store_images(store_id, image_urls, image_type, conversation_id):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     files = []
     headers = {"Authorization": f"Bearer {auth_token}"}
 
@@ -332,7 +347,9 @@ async def upload_store_images(store_id, image_urls, image_type, auth_token):
         async with session.put(f"{base_url}/apiv2/about_images/", data=data, headers=headers) as response:
             return await response.json()
 
-async def capture_store_story(store_id, store_name, stories: dict, auth_token: str):
+async def capture_store_story(store_id, store_name, stories: dict, conversation_id: str):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     payload = {
         "store_id": store_id,
@@ -364,7 +381,9 @@ async def capture_store_story(store_id, store_name, stories: dict, auth_token: s
             storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
     return {"profile_response": profile_response, "update_result": update_result, "storefront_link": storefront_link}
 
-async def get_storefront_link(store_id, auth_token):
+async def get_storefront_link(store_id, conversation_id):
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -383,10 +402,12 @@ async def get_storefront_link(store_id, auth_token):
 # NEW: PRODUCT & STOREFRONT MANAGEMENT
 # -------------------------
 
-async def get_all_products(store_id, auth_token):
+async def get_all_products(store_id, conversation_id):
     """
     GET /ocr/get_all_products/?store_id={store_id}
     """
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -396,10 +417,12 @@ async def get_all_products(store_id, auth_token):
         ) as response:
             return await response.json()
 
-async def get_product_by_id(product_id, auth_token):
+async def get_product_by_id(product_id, conversation_id):
     """
     GET /ocr/store/product/{product_id}
     """
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -408,10 +431,12 @@ async def get_product_by_id(product_id, auth_token):
         ) as response:
             return await response.json()
 
-async def get_storefront_details(store_id, auth_token):
+async def get_storefront_details(store_id, conversation_id):
     """
     GET /ocr/storefront/get_info/{store_id}
     """
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -422,7 +447,7 @@ async def get_storefront_details(store_id, auth_token):
         
 async def update_product(
     product_id: int,
-    auth_token: str,
+    conversation_id: str,
     product_name: str = None,
     mrp: float = None,
     is_visible_in_storefront: bool = None,
@@ -436,7 +461,8 @@ async def update_product(
     PUT /ocr/store/product/{product_id}/
     Updates product fields. All params optional.
     """
-
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
 
     payload = {}
@@ -466,12 +492,14 @@ async def update_product(
         ) as response:
             return await response.json()
 
-async def update_storefront_info(store_id, storefront_payload, auth_token):
+async def update_storefront_info(store_id, storefront_payload, conversation_id):
     """
     PUT /apiv2/storefront/info/{store_id}/
     Body: storefront payload (name, store_address_line_1, store_address_line_2, whatsapp_number, phone_number,
           instagram_id, description, email, about_store, what_we_do, etc.)
     """
+    state = await get_state_variable(conversation_id)
+    auth_token = state.auth_token    
     headers = {"Authorization": f"Bearer {auth_token}"}
     async with aiohttp.ClientSession() as session:
         async with session.put(

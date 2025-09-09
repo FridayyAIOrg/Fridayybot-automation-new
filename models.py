@@ -24,9 +24,16 @@ class Message(Base):
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+class StateVariables(Base):
+    __tablename__ = 'state_variables'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    conversation_id = Column(String(64), nullable=False, unique=True, index=True)
+    auth_token = Column(String(256), nullable=True)
+
 # DB setup
 DATABASE_URL = config.DATABASE_URL
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 # DB operations
@@ -50,3 +57,25 @@ async def get_conversation_messages_orm(conversation_id):
             .order_by(Message.id)
         )
         return result.scalars().all()
+
+async def update_state_variable(conversation_id, auth_token):
+    async with AsyncSessionLocal() as session:
+        async with session.begin():
+            result = await session.execute(
+                select(StateVariables).filter(StateVariables.conversation_id == conversation_id)
+            )
+            state_var = result.scalars().first()
+            if state_var:
+                state_var.auth_token = auth_token
+            else:
+                state_var = StateVariables(conversation_id=conversation_id, auth_token=auth_token)
+                session.add(state_var)
+
+async def get_state_variable(conversation_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(StateVariables).filter(StateVariables.conversation_id == conversation_id)
+        )
+        state_var = result.scalars().first()
+        return state_var
+    

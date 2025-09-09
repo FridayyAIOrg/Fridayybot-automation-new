@@ -18,4 +18,4 @@ def clean_env_var(value: str | None) -> str | None:
 OPENROUTER_API_KEY = clean_env_var(os.getenv("OPENROUTER_API_KEY"))
 BOT_TOKEN = clean_env_var(os.getenv("BOT_TOKEN"))
 MODEL = clean_env_var(os.getenv("MODEL"))  # e.g. gemini/..., anthropic/...
-DATABASE_URL = clean_env_var(os.getenv("DATABASE_URL")) or "sqlite:///message_history.db"
+DATABASE_URL = clean_env_var(os.getenv("DATABASE_URL")) or "sqlite+aiosqlite:///./message_history.db"

@@ -6,12 +6,11 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 from telegram import Message, PhotoSize
-from telegram.ext import ContextTypes
 from openai import OpenAI
 from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
-from models import save_message_orm, get_conversation_messages_orm
+from models import init_db, save_message_orm, get_conversation_messages_orm
 import threading
 from health import create_health_app
 from aiohttp import web
@@ -83,7 +82,7 @@ async def process_llm(update: Update, user_content: str):
         # If there are no tool calls, this is the final response
         if not assistant_msg.tool_calls:
             # Use the response content directly, not from messages array
-            final_text = assistant_msg.content or "Done."
+            final_text = assistant_msg.content or "Something went wrong, please try again."
             
             # Clean any potential reasoning artifacts
             final_text = clean_response_content(final_text)
@@ -127,6 +126,7 @@ async def process_llm(update: Update, user_content: str):
             print(f"Executing tool: {tool_name} with args: {tool_args}")
             try:
                 # Special handling for tools that need extra context
+                tool_args["conversation_id"] = chat_id
                 if tool_name == "generate_ai_image":
                     tool_args["update"] = update
                 if tool_name == "create_product":
@@ -151,41 +151,7 @@ async def process_llm(update: Update, user_content: str):
 
 
 def clean_response_content(content: str) -> str:
-    """Remove any internal reasoning or system artifacts from response"""
-    if not content:
-        return "Done."
-    
-    # Remove common reasoning patterns that might leak through
-    lines = content.split('\n')
-    cleaned_lines = []
-    skip_next = False
-    
-    for line in lines:
-        line = line.strip()
-        
-        # Skip empty lines at the start
-        if not cleaned_lines and not line:
-            continue
-            
-        # Skip lines that look like internal reasoning
-        reasoning_indicators = [
-            'Looking at', 'The issue', 'The problem', 'Solution', 'Here are',
-            'This appears to be', 'It seems', 'The bot', 'Any way we can',
-            'Code:', 'Let\'s', 'So respond:', 'Use the exact phrase:',
-            'To be safe', 'Best to', 'Perhaps we', 'So current',
-            'But system expects', 'But now', 'However earlier'
-        ]
-        
-        if any(line.startswith(indicator) for indicator in reasoning_indicators):
-            continue
-            
-        if 'reasoning' in line.lower() or 'artifact' in line.lower():
-            continue
-            
-        cleaned_lines.append(line)
-    
-    result = '\n'.join(cleaned_lines).strip()
-    return result if result else "Done."
+    return content
 
 # Text message handler
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -218,7 +184,7 @@ async def run_health_server():
 
 async def setup_and_start():
     await run_health_server()
-
+    await init_db()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))

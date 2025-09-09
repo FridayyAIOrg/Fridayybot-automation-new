@@ -37,9 +37,8 @@ tools = [
                             ]
                         }
                     },
-                    "token": {"type": "string"}
                 },
-                "required": ["categories", "token"]
+                "required": ["categories"]
             }
         }
     },
@@ -47,7 +46,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "create_product",
-            "description": "Create a new product by uploading images and generating a description. Requires a bearer auth token.",
+            "description": "Create a new product by uploading images and generating a description.",
             "parameters": {
             "type": "object",
             "properties": {
@@ -80,13 +79,9 @@ tools = [
                 "ai_image": {
                 "type": "boolean",
                 "description": "Whether to generate AI-enhanced images for the product"
-                },
-                "auth_token": {
-                "type": "string",
-                "description": "Bearer token for authentication"
                 }
             },
-            "required": ["image_urls", "store_id", "product_name", "MRP", "application", "material", "ai_image", "auth_token"]
+            "required": ["image_urls", "store_id", "product_name", "MRP", "application", "material", "ai_image"]
             }
         }
     },
@@ -98,10 +93,6 @@ tools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "auth_token": { 
-                        "type": "string",
-                        "description": "Bearer token for authentication"
-                    },
                     "image_url": {
                         "type": "string",
                         "description": "URL of the input image to enhance"
@@ -111,7 +102,7 @@ tools = [
                         "description": "Name of the product"
                     }
                 },
-                "required": ["image_url", "product_name", "auth_token"]
+                "required": ["image_url", "product_name"]
             }
         }
     },
@@ -119,7 +110,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "capture_store_details",
-            "description": "Capture store name, address, WhatsApp number, and Instagram ID. Requires store_id and auth_token.",
+            "description": "Capture store name, address, WhatsApp number, and Instagram ID. Requires store_id.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -128,9 +119,8 @@ tools = [
                     "address": { "type": "string" },
                     "whatsapp_number": { "type": "string" },
                     "instagram_id": { "type": "string" },
-                    "auth_token": { "type": "string" }
                 },
-                "required": ["store_name", "store_id", "address", "whatsapp_number", "instagram_id", "auth_token"]
+                "required": ["store_name", "store_id", "address", "whatsapp_number", "instagram_id"]
             }
         }
     },
@@ -138,7 +128,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "upload_store_images",
-            "description": "Upload workspace/process images. Requires image URLs, store_id, and auth_token.",
+            "description": "Upload workspace/process images. Requires image URLs, store_id.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -150,10 +140,9 @@ tools = [
                     "image_type": {
                         "type": "string",
                         "enum": ["about", "what_we_do"]
-                    },
-                    "auth_token": { "type": "string" }
+                    }
                 },
-                "required": ["store_id", "image_urls", "image_type" "auth_token"]
+                "required": ["store_id", "image_urls", "image_type"]
             }
         }
     },
@@ -161,7 +150,7 @@ tools = [
         "type": "function",
         "function": {
             "name": "capture_store_story",
-            "description": "Capture the user’s story details about their process and challenges. Requires store_id, stories (a dict of 3 story types), and auth_token.",
+            "description": "Capture the user’s story details about their process and challenges. Requires store_id, stories (a dict of 3 story types).",
             "parameters": {
             "type": "object",
             "properties": {
@@ -177,9 +166,8 @@ tools = [
                 },
                 "required": ["process_speciality", "time_for_one_product", "challenges"]
                 },
-                "auth_token": { "type": "string" }
             },
-            "required": ["store_id", "store_name", "stories", "auth_token"]
+            "required": ["store_id", "store_name", "stories"]
             }
         }
     },
@@ -191,10 +179,9 @@ tools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "store_id": { "type": "string" },
-                    "auth_token": { "type": "string" }
+                    "store_id": { "type": "string" }
                 },
-                "required": ["store_id", "auth_token"]
+                "required": ["store_id"]
             }
         }
     },
@@ -202,14 +189,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_all_products",
-            "description": "Fetch all products for a given store. Requires bearer auth.",
+            "description": "Fetch all products for a given store.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "store_id": { "type": "string", "description": "Store ID" },
-                    "auth_token": { "type": "string", "description": "Bearer token" }
+                    "store_id": { "type": "string", "description": "Store ID" }
                 },
-                "required": ["store_id", "auth_token"]
+                "required": ["store_id"]
             }
         }
     },
@@ -217,17 +203,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "update_product",
-            "description": "Update a product by ID. Only allows updating specific editable fields. Requires bearer auth.",
+            "description": "Update a product by ID. Only allows updating specific editable fields.",
             "parameters": {
             "type": "object",
             "properties": {
                 "product_id": {
                 "type": "string",
                 "description": "Product ID to update"
-                },
-                "auth_token": {
-                "type": "string",
-                "description": "Bearer token for authentication"
                 },
                 "product_name": {
                 "type": "string",
@@ -264,7 +246,7 @@ tools = [
                 "description": "Available inventory quantity"
                 }
             },
-            "required": ["product_id", "auth_token"]
+            "required": ["product_id"]
             }
         }
     },
@@ -272,14 +254,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_storefront_details",
-            "description": "Fetch detailed storefront info for a given store. Requires bearer auth.",
+            "description": "Fetch detailed storefront info for a given store.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "store_id": { "type": "string", "description": "Store ID" },
-                    "auth_token": { "type": "string", "description": "Bearer token" }
+                    "store_id": { "type": "string", "description": "Store ID" }
                 },
-                "required": ["store_id", "auth_token"]
+                "required": ["store_id"]
             }
         }
     },
@@ -287,14 +268,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "get_product_by_id",
-            "description": "Get all product details by id. Requires bearer auth.",
+            "description": "Get all product details by id.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "product_id": { "type": "string", "description": "Product ID to update" },
-                    "auth_token": { "type": "string", "description": "Bearer token" }
                 },
-                "required": ["product_id", "auth_token"]
+                "required": ["product_id"]
             }
         }
     },
