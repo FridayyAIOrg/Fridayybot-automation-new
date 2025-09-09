@@ -10,7 +10,7 @@ from openai import OpenAI
 from config import BOT_TOKEN, OPENROUTER_API_KEY, MODEL
 from tools import TOOL_MAPPING
 from tools_def import tools
-from models import init_db, save_message_orm, get_conversation_messages_orm
+from models import save_message_orm, get_conversation_messages_orm
 import threading
 from health import create_health_app
 from aiohttp import web
@@ -184,7 +184,6 @@ async def run_health_server():
 
 async def setup_and_start():
     await run_health_server()
-    await init_db()
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
