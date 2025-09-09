@@ -44,7 +44,7 @@ Shall we get started? First, please tell me your phone number?"
 
 USER: [phone number]
 → CALL: auth_vendor
-→ IF store_id exists: "I see you already have a store, what would you like to do? [List your capabilities]"
+→ IF store_id exists: "I see you already have a store, what would you like to do? [Capabilities]"
 → IF no store_id: "Thank you. Now, can you tell me what you sell?"
 
 USER: [business description]

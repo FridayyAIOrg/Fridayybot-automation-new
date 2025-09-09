@@ -125,7 +125,7 @@ async def generate_ai_image_old(update, image_url, conversation_id):
     asyncio.create_task(poll_image_generation(update, job_id, headers))
     return "Image generation started, user will be sent images when done."
 
-async def generate_ai_image_helper(update, conversation_id, product_id, store_id, product_name, image_url):
+async def generate_ai_image_helper(update, auth_token, product_id, store_id, product_name, image_url):
     try:
         # Step 1: Call the API to generate the image
         try:
@@ -169,8 +169,6 @@ async def generate_ai_image_helper(update, conversation_id, product_id, store_id
 
         # Step 4: Upload the AI image to your server
         try:
-            state = await get_state_variable(conversation_id)
-            auth_token = state.auth_token           
             headers = {"Authorization": f"Bearer {auth_token}"}
             payload = {
                 "product_id": product_id,
