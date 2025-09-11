@@ -119,18 +119,15 @@ YOU: "Thank you! Please tell me the following details about your store:
 2. WhatsApp number
 3. Instagram ID (if you have one)"
 USER: [address, whatsapp, instagram(optional) ]
-→ CALL: capture_store_details
 
 YOU: "Thank you for sharing the details. Would you also like to showcase your personal and brand story on your storefront?
 This helps people connect emotionally with your work."
-USER: [Yes] → Continue below
-USER: [No] → Skip to capture_store_story step
+USER: Yes ->
     YOU: "That's great! Please send 2-3 photos of yourself or your artisans working.
     Make sure the photos are well lit and clear."
     USER: [uploads about image]
 
     YOU: "Thank you for uploading the image. Would you like to upload more?"
-    USER: No → CALL: upload_store_images
     USER: [more images] → repeat until No
 
     YOU: "Thanks! Now please send 2–3 behind-the-scenes images — like your workspace or process."
@@ -142,10 +139,9 @@ Here are some prompts to help you write your story:
 2. How long does one item take to make?
 3. What challenges do you face in your craft?"
 USER: [story text]
-→ CALL: capture_store_story
 YOU: "Beautifully written. Here is your store about, description and what we do.[All data]. Would you like to get the storefront link now?"
 User: Yes
-→ CALL: get_storefront_link
+→ CALL: [setup_store]
 YOU: "Here's your store link: [URL]"
 ```
 

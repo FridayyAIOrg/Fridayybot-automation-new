@@ -379,6 +379,64 @@ async def capture_store_story(store_id, store_name, stories: dict, conversation_
             storefront_link = f'development.fridayy.ai/{data.get("store_link")}/'
     return {"profile_response": profile_response, "update_result": update_result, "storefront_link": storefront_link}
 
+async def setup_store(
+    store_id: str,
+    store_name: str,
+    address: str,
+    whatsapp_number: str,
+    instagram_id: str | None,
+    about_images: dict | None,
+    what_we_do_images: dict | None,
+    stories: dict,
+    conversation_id: str
+):
+    results = {}
+
+    # Step 1: Capture store details
+    store_details_result = await capture_store_details(
+        store_id=store_id,
+        store_name=store_name,
+        address=address,
+        whatsapp_number=whatsapp_number,
+        instagram_id=instagram_id,
+        conversation_id=conversation_id
+    )
+    results["details"] = store_details_result
+
+    # Step 2: Upload store images (if provided)
+    image_results = {}
+
+    if about_images and about_images.get("urls"):
+        upload_result = await upload_store_images(
+            store_id=store_id,
+            image_urls=about_images["urls"],
+            image_type="about",
+            conversation_id=conversation_id
+        )
+        image_results["about"] = upload_result
+
+    if what_we_do_images and what_we_do_images.get("urls"):
+        upload_result = await upload_store_images(
+            store_id=store_id,
+            image_urls=what_we_do_images["urls"],
+            image_type="what_we_do",
+            conversation_id=conversation_id
+        )
+        image_results["what_we_do"] = upload_result
+
+    results["images"] = image_results
+
+    # Step 3: Capture store story
+    store_story_result = await capture_store_story(
+        store_id=store_id,
+        store_name=store_name,
+        stories=stories,
+        conversation_id=conversation_id
+    )
+    results["story"] = store_story_result
+
+    return results
+
 async def get_storefront_link(store_id, conversation_id):
     state = await get_state_variable(conversation_id)
     auth_token = state.auth_token    
@@ -544,9 +602,7 @@ TOOL_MAPPING = {
     "create_store": create_store,
     "create_product": create_product,
     "generate_ai_image": generate_ai_image,
-    "capture_store_details": capture_store_details,
-    "upload_store_images": upload_store_images,
-    "capture_store_story": capture_store_story,
+    "setup_store": setup_store,
     "get_storefront_link": get_storefront_link,
     "get_all_products": get_all_products,
     "get_product_by_id": get_product_by_id,

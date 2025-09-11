@@ -109,53 +109,28 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "capture_store_details",
-            "description": "Capture store name, address, WhatsApp number, and Instagram ID. Requires store_id.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "store_id": { "type": "string" },
-                    "store_name": { "type": "string" },
-                    "address": { "type": "string" },
-                    "whatsapp_number": { "type": "string" },
-                    "instagram_id": { "type": "string" },
-                },
-                "required": ["store_name", "store_id", "address", "whatsapp_number", "instagram_id"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "upload_store_images",
-            "description": "Upload workspace/process images. Requires image URLs, store_id.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "store_id": { "type": "string" },
-                    "image_urls": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                    },
-                    "image_type": {
-                        "type": "string",
-                        "enum": ["about", "what_we_do"]
-                    }
-                },
-                "required": ["store_id", "image_urls", "image_type"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "capture_store_story",
-            "description": "Capture the user’s story details about their process and challenges. Requires store_id, stories (a dict of 3 story types).",
+            "name": "setup_store",
+            "description": "Capture and set up store details, upload images (about and what_we_do), and record the store's story. Runs all steps sequentially.",
             "parameters": {
             "type": "object",
             "properties": {
                 "store_id": { "type": "string" },
                 "store_name": { "type": "string" },
+                "address": { "type": "string" },
+                "whatsapp_number": { "type": "string" },
+                "instagram_id": { "type": "string", "nullable": True },
+                "about_images": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of image URLs for 'about' section.",
+                "nullable": True
+                },
+                "what_we_do_images": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of image URLs for 'what we do' section.",
+                "nullable": True
+                },
                 "stories": {
                 "type": "object",
                 "description": "A mapping of story types to story texts.",
@@ -165,9 +140,9 @@ tools = [
                     "challenges": { "type": "string" }
                 },
                 "required": ["process_speciality", "time_for_one_product", "challenges"]
-                },
+                }
             },
-            "required": ["store_id", "store_name", "stories"]
+            "required": ["store_id", "store_name", "address", "whatsapp_number", "stories"]
             }
         }
     },
