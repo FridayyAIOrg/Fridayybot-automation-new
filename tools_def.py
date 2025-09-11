@@ -183,7 +183,7 @@ tools = [
             "type": "object",
             "properties": {
                 "product_id": {
-                "type": "string",
+                "type": "integer",
                 "description": "Product ID to update"
                 },
                 "product_name": {
@@ -247,7 +247,7 @@ tools = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "product_id": { "type": "string", "description": "Product ID to update" },
+                    "product_id": { "type": "integer", "description": "Product ID to update" },
                 },
                 "required": ["product_id"]
             }
