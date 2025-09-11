@@ -213,7 +213,7 @@ async def generate_ai_image(update, conversation_id, product_name, image_url):
                         "content": [
                             {
                                 "type": "text",
-                                "text": f"Product photo is attached. Create a background for it showing it being used. You must respond with an image only, no text."
+                                "text": f"The product in the photo is {product_name}. Create a background for it showing it being used. You must respond with an image only, no text."
                             },
                             {
                                 "type": "image_url",
